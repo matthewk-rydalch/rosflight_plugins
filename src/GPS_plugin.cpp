@@ -21,17 +21,18 @@
 namespace rosflight_plugins
 {
 
-
+///// Constructor
 GPSPlugin::GPSPlugin() : ModelPlugin() {}
 
-
+//deconstructor
 GPSPlugin::~GPSPlugin()
 {
   GZ_COMPAT_DISCONNECT_WORLD_UPDATE_BEGIN(updateConnection_);
   nh_.shutdown();
 }
 
-
+//////loads gazebo position model
+//called by: must be called from outside the file
 void GPSPlugin::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
   if (!ros::isInitialized())
@@ -75,18 +76,22 @@ void GPSPlugin::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
   //
 
   nh_ = ros::NodeHandle(namespace_);
-  nh_private_ = ros::NodeHandle(namespace_ + "/gps");
+  nh_private_ = ros::NodeHandle(namespace_ + "/gps"); //for gazebo sim, multirotor/gps
 
   // load params from rosparam server
   int numSat;
-  noise_on_ = nh_private_.param<bool>("noise_on", true);
-  gnss_topic_ = nh_private_.param<std::string>("topic", "gnss");
+  noise_on_ = nh_private_.param<bool>("noise_on", true); //syntax ("topic name", value), or is the second value default?  I think it is
+  gnss_topic_ = nh_private_.param<std::string>("topic", "gnss"); //"topic" comes from multirotor.yaml for roscopter_sim
   gnss_fix_topic_ = nh_private_.param<std::string>("fix_topic", "navsat_compat/fix");
   gnss_vel_topic_ = nh_private_.param<std::string>("vel_topic", "navsat_compat/vel");
   north_stdev_ = nh_private_.param<double>("north_stdev", 0.21);
   east_stdev_ = nh_private_.param<double>("east_stdev", 0.21);
   alt_stdev_ = nh_private_.param<double>("alt_stdev", 0.40);
   velocity_stdev_ = nh_private_.param<double>("velocity_stdev", 0.30);
+  std::cerr << "north_stdev = " << north_stdev_ << "\n";
+  std::cerr << "east_stdev = " << east_stdev_ << "\n";
+  std::cerr << "alt_stdev = " << alt_stdev_ << "\n";
+  std::cerr << "vel_stdev = " << velocity_stdev_ << "\n"; //these values do seem to be coming correctly from roscopter_sim param multirotor.yaml
   north_k_GPS_ = nh_private_.param<double>("k_north", 1.0/1100.0);
   east_k_GPS_ = nh_private_.param<double>("k_east", 1.0/1100.0);
   alt_k_GPS_ = nh_private_.param<double>("k_alt", 1.0/1100.0);
@@ -148,12 +153,15 @@ void GPSPlugin::OnUpdate(const gazebo::common::UpdateInfo& _info)
       // Add noise per Gauss-Markov Process (p. 139 UAV Book)
       double noise = north_stdev_*standard_normal_distribution_(random_generator_);
       north_GPS_error_ = exp(-1.0*north_k_GPS_*sample_time_)*north_GPS_error_ + noise;
+      // north_GPS_error_ = noise;
 
       noise = east_stdev_*standard_normal_distribution_(random_generator_);
       east_GPS_error_ = exp(-1.0*east_k_GPS_*sample_time_)*east_GPS_error_ + noise;
+      // east_GPS_error_ = noise;
 
       noise = alt_stdev_*standard_normal_distribution_(random_generator_);
       alt_GPS_error_ = exp(-1.0*alt_k_GPS_*sample_time_)*alt_GPS_error_ + noise;
+      // alt_GPS_error_ = noise;
 
       // Find NED position in meters
       GazeboPose W_pose_W_C = GZ_COMPAT_GET_WORLD_COG_POSE(link_);
