@@ -152,16 +152,16 @@ void GPSPlugin::OnUpdate(const gazebo::common::UpdateInfo& _info)
 
       // Add noise per Gauss-Markov Process (p. 139 UAV Book)
       double noise = north_stdev_*standard_normal_distribution_(random_generator_);
-      north_GPS_error_ = exp(-1.0*north_k_GPS_*sample_time_)*north_GPS_error_ + noise;
-      // north_GPS_error_ = noise;
+      // north_GPS_error_ = exp(-1.0*north_k_GPS_*sample_time_)*north_GPS_error_ + noise;
+      north_GPS_error_ = noise;
 
       noise = east_stdev_*standard_normal_distribution_(random_generator_);
-      east_GPS_error_ = exp(-1.0*east_k_GPS_*sample_time_)*east_GPS_error_ + noise;
-      // east_GPS_error_ = noise;
+      // east_GPS_error_ = exp(-1.0*east_k_GPS_*sample_time_)*east_GPS_error_ + noise;
+      east_GPS_error_ = noise;
 
       noise = alt_stdev_*standard_normal_distribution_(random_generator_);
-      alt_GPS_error_ = exp(-1.0*alt_k_GPS_*sample_time_)*alt_GPS_error_ + noise;
-      // alt_GPS_error_ = noise;
+      // alt_GPS_error_ = exp(-1.0*alt_k_GPS_*sample_time_)*alt_GPS_error_ + noise;
+      alt_GPS_error_ = noise;
 
       // Find NED position in meters
       GazeboPose W_pose_W_C = GZ_COMPAT_GET_WORLD_COG_POSE(link_);
